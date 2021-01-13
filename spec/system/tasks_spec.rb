@@ -1,10 +1,10 @@
 require 'rails_helper'
 
 RSpec.describe "Tasks", type: :system do
+  let(:user) { create(:user) }
   describe "ログイン済みユーザー" do
     context "フォームの入力値が正常" do
       it "タスクを作成できること" do
-        user = create(:user)
         login_as user
         task = build(:task, user: user)
         expect{
@@ -22,7 +22,6 @@ RSpec.describe "Tasks", type: :system do
         expect(current_path).to eq "/tasks/1"
       end
       it "タスクを編集できること" do
-        user = create(:user)
         login_as user
         task = create(:task, user: user)
         visit edit_task_path(task)
@@ -36,7 +35,6 @@ RSpec.describe "Tasks", type: :system do
     end
     context "使用済みのタイトル" do
       it "タスクを作成できないこと" do
-        user = create(:user)
         login_as user
         task = create(:task, user: user)
         expect{
@@ -51,10 +49,8 @@ RSpec.describe "Tasks", type: :system do
     end
     context "タスクの削除" do
       it "タスクを削除できること" do
-        user = create(:user)
         login_as user
         task = create(:task, user: user)
-        task2 = create(:task, user: user)
         expect{
           visit tasks_path
           click_link "Destroy"
@@ -67,7 +63,6 @@ RSpec.describe "Tasks", type: :system do
   describe "未ログインユーザー" do
     context "タスクの作成" do
       it "タスク作成ページに遷移できないこと" do
-        user = create(:user)
         visit new_task_path
         expect(current_path).to eq login_path
         expect(page).to have_content "Login required"
@@ -75,7 +70,6 @@ RSpec.describe "Tasks", type: :system do
     end
     context "タスクの編集" do
       it "タスク編集ページに遷移できないこと" do
-        user = create(:user)
         task = create(:task, user: user)
         visit edit_task_path(task)
         expect(current_path).to eq login_path

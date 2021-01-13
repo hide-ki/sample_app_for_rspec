@@ -4,8 +4,8 @@ RSpec.describe "Users", type: :system do
   describe 'ログイン前' do
     describe 'ユーザー新規登録' do
       context 'フォームの入力値が正常' do
+        let(:user) { build(:user)}
         it 'ユーザーの新規作成が成功する' do
-          user = build(:user)
           expect {
             visit root_path
             click_link "SignUp"
@@ -73,10 +73,10 @@ RSpec.describe "Users", type: :system do
     end
 
     describe 'ログイン後' do
+      let(:user) { create(:user) }
       describe 'ユーザー編集' do
         context 'フォームの入力値が正常' do
           it 'ユーザーの編集が成功する' do
-            user = create(:user)
             login_as user
             click_link "Mypage"
             click_link "Edit"
@@ -88,7 +88,6 @@ RSpec.describe "Users", type: :system do
         end
         context 'メールアドレスが未入力' do
           it 'ユーザーの編集が失敗する' do
-            user = create(:user)
             login_as user
             click_link "Mypage"
             click_link "Edit"
@@ -100,7 +99,6 @@ RSpec.describe "Users", type: :system do
         end
         context '登録済みのメールアドレスを使用' do
           it 'ユーザーの編集が失敗する' do
-            user = create(:user)
             duplicate_email_user = create(:user)
             login_as duplicate_email_user
             click_link "Mypage"
@@ -112,7 +110,6 @@ RSpec.describe "Users", type: :system do
         end
         context '他のユーザーの編集ページにアクセス' do
           it '編集ページへのアクセスが失敗する' do
-            user = create(:user)
             other_user = create(:user)
             login_as user
             visit edit_user_path(other_user)
@@ -124,7 +121,6 @@ RSpec.describe "Users", type: :system do
       describe 'マイページ' do
         context 'タスクを作成' do
           it '新規作成したタスクが表示される' do
-            user = create(:user)
             login_as user
             task1 = create(:task, user: user)
             task2 = create(:task, user: user)
