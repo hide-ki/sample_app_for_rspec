@@ -82,5 +82,13 @@ RSpec.describe "Tasks", type: :system do
         expect(page).to have_content "Login required"
       end
     end
+    context "タスクの詳細ページにアクセス" do
+      it "タスクの詳細情報が表示される" do
+        task = create(:task)
+        visit task_path(task)
+        expect(page).to have_content task.title
+        expect(current_path).to eq task_path(task)
+      end
+    end
   end
 end
