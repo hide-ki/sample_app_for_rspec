@@ -19,7 +19,8 @@ RSpec.describe "Tasks", type: :system do
         expect(page).to have_content task.title
         # task_path(task)を指定すると、エラーが発生し、解消できなかった
         # "/tasks/1" のように指定するとエラーは発生しない
-        expect(current_path).to eq "/tasks/1"
+        # Task.firstとすることで納得
+        expect(current_path).to eq task_path(Task.first)
       end
       it "タスクを編集できること" do
         login_as user
@@ -45,6 +46,15 @@ RSpec.describe "Tasks", type: :system do
           click_button "Create Task"
         }.to change(Task, :count).by(0)
         expect(page).to have_content "Title has already been taken"
+      end
+      it "タスクを編集できないこと" do
+        login_as user
+        task = create(:task, user: user)
+        visit edit_task_path(task)
+        fill_in "Title", with: ""
+        click_button "Update Task"
+        expect(task.title).not_to eq ""
+        expect(page).to have_content "Title can't be blank"
       end
     end
     context "タスクの削除" do
