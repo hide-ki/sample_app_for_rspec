@@ -30,6 +30,7 @@ RSpec.describe "Tasks", type: :system do
         click_button "Update Task"
         expect(page).to have_content "Task was successfully updated"
         expect(page).to have_content "foo"
+        expect(page).to have_content "Status: done"
         expect(current_path).to eq task_path(task)
       end
     end
@@ -42,6 +43,16 @@ RSpec.describe "Tasks", type: :system do
         expect(page).to have_content "1 error prohibited this task from being saved:"
         expect(page).to have_content "Title can't be blank"
         expect(current_path).to eq tasks_path
+      end
+      it "タスクの編集が失敗する" do
+        task = create(:task, user: user)
+        visit edit_task_path(task)
+        fill_in 'Title', with: nil
+        select :todo, from: 'Status'
+        click_button 'Update Task'
+        expect(page).to have_content '1 error prohibited this task from being saved'
+        expect(page).to have_content "Title can't be blank"
+        expect(current_path).to eq task_path(task)
       end
     end
     context "使用済みのタイトル" do
@@ -58,11 +69,13 @@ RSpec.describe "Tasks", type: :system do
       end
       it "タスクを編集できないこと" do
         task = create(:task, user: user)
+        duplicate_title_task = create(:task, user: user)
         visit edit_task_path(task)
-        fill_in "Title", with: ""
+        fill_in "Title", with: duplicate_title_task.title
         click_button "Update Task"
-        expect(task.title).not_to eq ""
-        expect(page).to have_content "Title can't be blank"
+        expect(page).to have_content "1 error prohibited this task from being saved"
+        expect(page).to have_content "Title has already been taken"
+        expect(current_path).to eq task_path(task)
       end
     end
     context "タスクの削除" do
