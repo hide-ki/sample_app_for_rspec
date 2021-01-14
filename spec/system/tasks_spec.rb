@@ -3,9 +3,9 @@ require 'rails_helper'
 RSpec.describe "Tasks", type: :system do
   let(:user) { create(:user) }
   describe "ログイン済みユーザー" do
+    before { login_as user }
     context "フォームの入力値が正常" do
       it "タスクを作成できること" do
-        login_as user
         task = build(:task, user: user)
         expect{
           visit new_task_path
@@ -23,7 +23,6 @@ RSpec.describe "Tasks", type: :system do
         expect(current_path).to eq task_path(Task.first)
       end
       it "タスクを編集できること" do
-        login_as user
         task = create(:task, user: user)
         visit edit_task_path(task)
         fill_in "Title", with: "foo"
@@ -36,7 +35,6 @@ RSpec.describe "Tasks", type: :system do
     end
     context "使用済みのタイトル" do
       it "タスクを作成できないこと" do
-        login_as user
         task = create(:task, user: user)
         expect{
           visit new_task_path
@@ -48,7 +46,6 @@ RSpec.describe "Tasks", type: :system do
         expect(page).to have_content "Title has already been taken"
       end
       it "タスクを編集できないこと" do
-        login_as user
         task = create(:task, user: user)
         visit edit_task_path(task)
         fill_in "Title", with: ""
@@ -59,7 +56,6 @@ RSpec.describe "Tasks", type: :system do
     end
     context "タスクの削除" do
       it "タスクを削除できること" do
-        login_as user
         task = create(:task, user: user)
         expect{
           visit tasks_path
