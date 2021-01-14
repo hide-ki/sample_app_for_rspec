@@ -33,6 +33,17 @@ RSpec.describe "Tasks", type: :system do
         expect(current_path).to eq task_path(task)
       end
     end
+    context "タイトルが未入力" do
+      it "タスクの新規作成が失敗する" do
+        visit new_task_path
+        fill_in "Title", with: ""
+        fill_in "Content", with: "test_content"
+        click_button "Create Task"
+        expect(page).to have_content "1 error prohibited this task from being saved:"
+        expect(page).to have_content "Title can't be blank"
+        expect(current_path).to eq tasks_path
+      end
+    end
     context "使用済みのタイトル" do
       it "タスクを作成できないこと" do
         task = create(:task, user: user)
