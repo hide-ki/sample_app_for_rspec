@@ -2,6 +2,7 @@ require 'rails_helper'
 
 RSpec.describe "Tasks", type: :system do
   let(:user) { create(:user) }
+  let(:task) { create(:task) }
   describe "未ログインユーザー" do
     context "タスクの作成" do
       it "タスク作成ページに遷移できないこと" do
@@ -12,7 +13,6 @@ RSpec.describe "Tasks", type: :system do
     end
     context "タスクの編集" do
       it "タスク編集ページに遷移できないこと" do
-        task = create(:task, user: user)
         visit edit_task_path(task)
         expect(current_path).to eq login_path
         expect(page).to have_content "Login required"
@@ -20,7 +20,6 @@ RSpec.describe "Tasks", type: :system do
     end
     context "タスクの詳細ページにアクセス" do
       it "タスクの詳細情報が表示される" do
-        task = create(:task)
         visit task_path(task)
         expect(page).to have_content task.title
         expect(current_path).to eq task_path(task)
@@ -76,12 +75,14 @@ RSpec.describe "Tasks", type: :system do
       end
       context "使用済みのタイトル" do
         it "タスクを作成できないこと" do
-          task = create(:task, user: user)
+          # other_taskを作らずに、fill_inの入力値にtask.titleではダメな理由がわからない
+          # task.titleを呼び出した時にtaskがcreateされていない？
+          other_task = create(:task)
           expect{
             visit new_task_path
-            fill_in "Title", with: task.title
-            fill_in "Content", with: task.content
-            select task.status, from: "Status"
+            fill_in "Title", with: other_task.title
+            fill_in "Content", with: other_task.content
+            select other_task.status, from: "Status"
             click_button "Create Task"
           }.to change(Task, :count).by(0)
           expect(page).to have_content "Title has already been taken"
@@ -89,10 +90,11 @@ RSpec.describe "Tasks", type: :system do
       end
     end
     describe "タスク編集" do
+      let!(:task) { create(:task, user: user) }
+      before { visit edit_task_path(task) }
+
       context " フォームの入力値が正常" do
         it "タスクを編集できること" do
-          task = create(:task, user: user)
-          visit edit_task_path(task)
           fill_in "Title", with: "foo"
           select "done", from: "Status"
           click_button "Update Task"
@@ -104,8 +106,6 @@ RSpec.describe "Tasks", type: :system do
       end
       context "タイトルが未入力" do
         it "タスクの編集が失敗する" do
-          task = create(:task, user: user)
-          visit edit_task_path(task)
           fill_in 'Title', with: nil
           select :todo, from: 'Status'
           click_button 'Update Task'
@@ -116,9 +116,7 @@ RSpec.describe "Tasks", type: :system do
       end
       context "登録済みのタイトルを入力" do
         it "タスクを編集できないこと" do
-          task = create(:task, user: user)
-          duplicate_title_task = create(:task, user: user)
-          visit edit_task_path(task)
+          duplicate_title_task = create(:task)
           fill_in "Title", with: duplicate_title_task.title
           click_button "Update Task"
           expect(page).to have_content "1 error prohibited this task from being saved"
@@ -129,9 +127,9 @@ RSpec.describe "Tasks", type: :system do
     end
 
     describe "タスク削除" do
+      let!(:task) { create(:task, user: user) }
       context "タスクの削除" do
         it "タスクを削除できること" do
-          task = create(:task, user: user)
           expect{
             visit tasks_path
             click_link "Destroy"
